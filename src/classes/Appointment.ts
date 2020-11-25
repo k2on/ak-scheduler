@@ -1,5 +1,6 @@
+import { bookAppointment, cancelAppointment } from '../logic';
+
 import { Scheduler } from '.';
-import { bookAppointment } from '../logic';
 
 /**
  * Class to represent a future appointment either booked or not booked.
@@ -10,17 +11,35 @@ export default class Appointment {
      * Constructor for an Appointment.
      * @param {Scheduler} schedular         Schedular instance.
      * @param {Date}      datetime          Time of the appointment.
-     * @param {string}    appointmentTypeId Usually a location in the building.
-     * @param {string}    appointmentId     Usually a staff member.
+     * @param {string}    typeID Usually a location in the building.
+     * @param {string}    trainerID     Usually a staff member.
      * @param {boolean}   isBooked          If this appoitment is booked or an avaliable time.
+     * @param {string}    id                Appointment ID if booked.
      */
     constructor(
         private schedular: Scheduler,
         public datetime: Date,
-        public appointmentTypeId: string,
-        public appointmentId: string,
+        public typeID: string,
+        public trainerID: string,
         public isBooked = false,
+        public id: string,
     ) {}
+
+    /**
+     * Get the trainer name.
+     * @returns {string} Trainer label.
+     */
+    get trainerName(): string {
+        return this.schedular.getTrainerName(this.trainerID);
+    }
+
+    /**
+     * Get the type name.
+     * @returns {string} Appointment label.
+     */
+    get typeName(): string {
+        return this.schedular.getAppointmentTypeName(this.typeID);
+    }
 
     /**
      * Book this appointment.
@@ -30,11 +49,11 @@ export default class Appointment {
     async book(): Promise<void> {
         if (this.isBooked) throw Error('already booked');
         await bookAppointment(
-            this.schedular.locationId,
-            this.schedular.sessionId,
+            this.schedular.locationID,
+            this.schedular.sessionID,
             this.datetime,
-            this.appointmentId,
-            this.appointmentTypeId,
+            this.id,
+            this.typeID,
         );
     }
 
@@ -45,5 +64,12 @@ export default class Appointment {
      */
     async cancel(): Promise<void> {
         if (!this.isBooked) throw Error('not booked');
+        if (this.id == null) throw Error('Appt ID is null');
+        await cancelAppointment(
+            this.schedular.locationID,
+            this.schedular.sessionID,
+            this.schedular.userID,
+            this.id,
+        );
     }
 }

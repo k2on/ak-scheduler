@@ -127,3 +127,5 @@ dist
 service*.yaml
 
 serv/
+
+tests/sandbox.ts
